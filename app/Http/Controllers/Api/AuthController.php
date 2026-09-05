@@ -3,44 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
     /**
-     * Login del usuario.
+     * Login de usuario.
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => [
-                'required',
-                'email',
-            ],
-            'password' => [
-                'required',
-                'string',
-            ],
-        ], [
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El correo electrónico no tiene un formato válido.',
-            'password.required' => 'La contraseña es obligatoria.',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Los datos enviados no son válidos.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         if (!Auth::attempt($request->only('email', 'password'))) {
+
             return response()->json([
                 'success' => false,
-                'message' => 'Las credenciales son incorrectas.',
+                'message' => 'Las credenciales son incorrectas.'
             ], 401);
         }
 
@@ -52,39 +31,27 @@ class AuthController extends Controller
         $tokenResult = $user->createToken('vue-token');
 
         return response()->json([
-            'success' => true,
-            'message' => 'Inicio de sesión correcto.',
-            'token' => $tokenResult->accessToken,
+            'success'    => true,
+            'message'    => 'Inicio de sesión correcto.',
+            'token'      => $tokenResult->accessToken,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-            ],
-        ], 200);
+            'user'       => new UserResource($user)
+        ]);
     }
 
     /**
-     * Usuario actualmente autenticado.
+     * Usuario autenticado.
      */
     public function me(Request $request)
     {
-        $user = $request->user();
-
         return response()->json([
             'success' => true,
-            'user' => [
-                'id' => $user->id,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-            ],
-        ], 200);
+            'user' => new UserResource($request->user())
+        ]);
     }
 
     /**
-     * Cerrar la sesión actual.
+     * Logout.
      */
     public function logout(Request $request)
     {
@@ -96,7 +63,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Sesión cerrada correctamente.',
-        ], 200);
+            'message' => 'Sesión cerrada correctamente.'
+        ]);
     }
 }

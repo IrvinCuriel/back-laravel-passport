@@ -3,6 +3,10 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -28,14 +32,127 @@ class Handler extends ExceptionHandler
     ];
 
     /**
-     * Register the exception handling callbacks for the application.
-     *
-     * @return void
+     * Register the exception handling callbacks.
      */
     public function register()
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | ValidationException
+        |--------------------------------------------------------------------------
+        */
+
+        $this->renderable(function (
+            ValidationException $e,
+            $request
+        ) {
+
+            if ($request->expectsJson()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error de validación.',
+                    'errors' => $e->errors()
+                ], 422);
+
+            }
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | AuthenticationException
+        |--------------------------------------------------------------------------
+        */
+
+        $this->renderable(function (
+            AuthenticationException $e,
+            $request
+        ) {
+
+            if ($request->expectsJson()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No autenticado.',
+                    'errors' => null
+                ], 401);
+
+            }
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | NotFoundHttpException
+        |--------------------------------------------------------------------------
+        */
+
+        $this->renderable(function (
+            NotFoundHttpException $e,
+            $request
+        ) {
+
+            if ($request->expectsJson()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Recurso no encontrado.',
+                    'errors' => null
+                ], 404);
+
+            }
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | ModelNotFoundException
+        |--------------------------------------------------------------------------
+        */
+
+        $this->renderable(function (
+            ModelNotFoundException $e,
+            $request
+        ) {
+
+            if ($request->expectsJson()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Registro no encontrado.',
+                    'errors' => null
+                ], 404);
+
+            }
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Error 500
+        |--------------------------------------------------------------------------
+        */
+
+        $this->renderable(function (
+            Throwable $e,
+            $request
+        ) {
+
+            if ($request->expectsJson()) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ocurrió un error interno del servidor.',
+                    'errors' => null
+                ], 500);
+
+            }
+
         });
     }
 }

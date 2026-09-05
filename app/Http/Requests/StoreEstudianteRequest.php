@@ -30,7 +30,7 @@ class StoreEstudianteRequest extends FormRequest
             'apellido.required' => 'El apellido es obligatorio.',
             'apellido.max'      => 'El apellido no puede exceder 100 caracteres.',
 
-            'foto.max'          => 'La foto no puede exceder 255 caracteres.',
+            //'foto.max'          => 'La foto no puede exceder 255 caracteres.',
         ];
     }
 }

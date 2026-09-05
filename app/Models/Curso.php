@@ -10,8 +10,7 @@ class Curso extends Model
     use HasFactory;
 
     public $table = "cursos";
-    protected $fillable = array("*");
-    //public $timestamps = true;
+    protected $guarded = [];
 
     public function estudiantes(){
         return $this->belongsToMany(Estudiante::class,"curso_estudiante");

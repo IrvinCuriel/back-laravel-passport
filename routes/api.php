@@ -83,3 +83,39 @@ Route::prefix('v1')->group(function () {
         Route::delete('/usuarios/{id}', [UserController::class, 'destroy']);
     });
 });
+
+
+
+
+/*
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\EstudiantesController;
+use App\Http\Controllers\UserController;
+
+Route::prefix('v1')->group(function () {
+
+    Route::post('/login', [AuthController::class, 'login']);
+
+});
+
+
+Route::prefix('v1')->middleware('auth:api')->group(function () {
+
+    Route::get('/me', [AuthController::class, 'me']);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::apiResource(
+        'estudiantes',
+        EstudiantesController::class
+    );
+
+    Route::apiResource(
+        'usuarios',
+        UserController::class
+    );
+
+});
+*/

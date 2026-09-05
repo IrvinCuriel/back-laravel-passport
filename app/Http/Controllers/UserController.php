@@ -4,30 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use Illuminate\Http\Request;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    use ApiResponse;
+
+    /**
+     * Listado de usuarios.
+     */
     public function index()
     {
         $users = User::all();
 
-        $data = $users->map(function ($user) {
-            return [
-                'id'         => $user->id,
-                'first_name' => $user->first_name,
-                'last_name'  => $user->last_name,
-                'email'      => $user->email,
-            ];
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Listado de usuarios.',
-            'data'    => $data,
-        ], 200);
+        return $this->successResponse(
+            UserResource::collection($users),
+            'Listado de usuarios.'
+        );
     }
 
     /**
@@ -37,22 +33,19 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        $data['password'] = Hash::make($data['password']);
+        $data['password'] = Hash::make(
+            $data['password']
+        );
 
         unset($data['password_confirmation']);
 
         $user = User::create($data);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario creado correctamente.',
-            'data' => [
-                'id'         => $user->id,
-                'first_name' => $user->first_name,
-                'last_name'  => $user->last_name,
-                'email'      => $user->email,
-            ]
-        ], 201);
+        return $this->successResponse(
+            new UserResource($user),
+            'Usuario creado correctamente.',
+            201
+        );
     }
 
     /**
@@ -63,45 +56,44 @@ class UserController extends Controller
         $user = User::find($id);
 
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'El usuario no existe.',
-                'errors'  => null
-            ], 404);
+            return $this->errorResponse(
+                'El usuario no existe.',
+                404
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario encontrado.',
-            'data' => [
-                'id'         => $user->id,
-                'first_name' => $user->first_name,
-                'last_name'  => $user->last_name,
-                'email'      => $user->email,
-            ]
-        ], 200);
+        return $this->successResponse(
+            new UserResource($user),
+            'Usuario encontrado.'
+        );
     }
 
     /**
      * Actualizar usuario.
      */
-    public function update(UpdateUserRequest $request, $id)
-    {
+    public function update(
+        UpdateUserRequest $request,
+        $id
+    ) {
         $user = User::find($id);
 
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'El usuario no existe.',
-                'errors'  => null
-            ], 404);
+            return $this->errorResponse(
+                'El usuario no existe.',
+                404
+            );
         }
 
         $data = $request->validated();
 
         if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
+
+            $data['password'] = Hash::make(
+                $data['password']
+            );
+
         } else {
+
             unset($data['password']);
         }
 
@@ -109,16 +101,10 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario actualizado correctamente.',
-            'data' => [
-                'id'         => $user->id,
-                'first_name' => $user->first_name,
-                'last_name'  => $user->last_name,
-                'email'      => $user->email,
-            ]
-        ], 200);
+        return $this->successResponse(
+            new UserResource($user),
+            'Usuario actualizado correctamente.'
+        );
     }
 
     /**
@@ -129,20 +115,17 @@ class UserController extends Controller
         $user = User::find($id);
 
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'El usuario no existe.',
-                'errors'  => null
-            ], 404);
+            return $this->errorResponse(
+                'El usuario no existe.',
+                404
+            );
         }
 
         $user->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario eliminado correctamente.',
-            'data'    => null
-        ], 200);
+        return $this->successResponse(
+            null,
+            'Usuario eliminado correctamente.'
+        );
     }
-
 }
